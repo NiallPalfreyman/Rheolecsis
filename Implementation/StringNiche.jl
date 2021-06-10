@@ -2,7 +2,7 @@
 # StringNiche: Niches that display their Affordances as a Vector of
 # indices to an alphabet of symbols.
 =====================================================================#
-stringnicheunittest = true					# Set unit test environment
+stringnicheunittest = false					# Set unit test environment
 if stringnicheunittest
 	#------------------------- Unit Testing --------------------------
 	include("../Rheolecsis.jl")
