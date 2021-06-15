@@ -1,7 +1,7 @@
 #=====================================================================
 # Abstract Affordance interface: General-purpose Affordances for RA's.
 =====================================================================#
-affordanceunittest = true					# Set unit test environment
+affordanceunittest = false					# Set unit test environment
 if affordanceunittest
 	#------------------------- Unit Testing --------------------------
 	function unittest()
