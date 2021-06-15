@@ -1,4 +1,4 @@
-objectivesunittest = false					# Set up unit testing
+objectivesunittest = true					# Set up unit testing
 
 module Objectives
 #=====================================================================
@@ -94,12 +94,12 @@ end
 
 #---------------------------------------------------------------------
 @doc raw"""
-    ```depict( obj, dims, centre, radius)```
+    ```depict( obj, dims, centre, radius; blob)```
 
 Depict given dimension(s) of objective function over rectangular
 neighbourhood with given centre and radius.
 """
-function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN)
+function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN; blob=NaN)
 	dim = obj.dimension						# Store for multiple Use
 
 	if isempty(dims)
@@ -143,6 +143,11 @@ function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN)
 		end
 		plot(x,obj.(args))
 		plot!(xlabel="x",ylabel="Evaluation")
+
+		if blob !== NaN
+			# Display the blob:
+			plot!([blob[1]],[blob[2]],st=:scatter,ms=10,mc=:lime,shape=:star5,leg=:none)
+		end
 	elseif len == 2
 		# Construct arguments for contour map:
 		x = glb[1]:(lub[1]-glb[1])/nsteps:lub[1]
@@ -154,6 +159,11 @@ function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN)
 		end
 		plot(x,y,obj.(args),st=:contourf)
 		plot!(xlabel="x",ylabel="y")
+
+		if blob !== NaN
+			# Display the blob:
+			plot!([blob[1]],[blob[2]],st=:scatter,ms=10,mc=:lime,shape=:star5,leg=:none)
+		end
 	else
 		error( "Cannot depict more than 2 dimensions")
 	end
@@ -223,16 +233,8 @@ if objectivesunittest
 	using .Objectives
 	function unittest()
 		println("\n============ Unit test Objectives: ===============")
-		println( 0, "  yields -18.5547? : ", Objective()([0.9039,0.8668]) )
-		println( 1, "  yields        1? : ", Objective(1)(0) )
-		println( 2, "  yields        0? : ", Objective(2)(0) )
-		println( 3, "  yields        1? : ", Objective(3)([0,0]) )
-		println( 5, "  yields  -100.22? : ", Objective(5)(9.6204) )
-		println( 6, "  yields -18.5547? : ", Objective(6)([9.039,8.668]) )
-		println( 13, " yields  -23.806? : ", Objective(13)([-14.58,-20]) )
-		println( 14, " yields      128? : ", Objective(14)(ones(128)) )
-
-		depict(Objective())
-
+		
+		println( 6, "  yields : ", Objective(6)([9.039,8.668]) )
+		depict(Objective(), blob=[9.039,8.668,-18.5547])
 	end
 end
