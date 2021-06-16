@@ -1,7 +1,7 @@
 module Rheolecsis
 #=====================================================================
 # Module Rheolecsis:
-# The basic definition of a Rheolectic Algorithm (RA) that is:
+# The basic definition of a Rheolectic Simulations (RS) that is:
 # stabilising, enactive, exploratory and niche-constructing.
 =====================================================================#
 include("Implementation/Enform.jl")
