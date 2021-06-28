@@ -1,13 +1,15 @@
 #=====================================================================
-# Abstract Niche interface: The structures that populate an Inform.
+# Abstract Niche interface: The structures that populate an Enform.
 # In general, a Niche contains a profile of Affordances of
 # varying constitution and representation. A Niche might
 # represent an individual organism employing a collection of
 # Affordances, or a population of individuals, each possessing
 # individual Affordances. The important point is that the Niche is
 # the enacting interface between Affordances and an Inform.
+# A Niche is the home of all selection/downward stabilisation in a
+# rheolectic system.
 =====================================================================#
-@doc raw"""
+@doc """
 	```Niche```
 
 Interface for all Niches
@@ -15,7 +17,7 @@ Interface for all Niches
 abstract type Niche end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
 	```size( niche)```
 
 Size of a Niche is (length,number) of Affordances
@@ -25,7 +27,7 @@ function size( niche::Niche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
 	```mutate!( niche)```
 
 Mutate the Affordances of this Niche.
@@ -35,18 +37,18 @@ function mutate!( niche::Niche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
-    ```recombine!( niche, growth)```
+@doc """
+    ```recombine!( niche)```
 
-Recombine member Affordances of the Niche based on normalised
-growth rates based on evaluations from an external Inform.
+Recombine member Affordances of the Niche based on its current
+stabilisation rates determined by evaluations from an external Enform.
 """
-function recombine!( niche::Niche, growth::Vector{Float64})
+function recombine!( niche::Niche)
 	missing
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```express( niche)```
 
 Express the Niche's Affordances as a Construction.
@@ -56,7 +58,7 @@ function express( niche::Niche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```show( io, niche)```
 
 Display current status of Niche.
@@ -66,13 +68,13 @@ function Base.show( io::IO, pheno::Niche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
-    ```growth!( niche, response)```
+@doc """
+    ```stabilise!( niche, response)```
 
-Calculate the growth rate associated with each element of a Response
-Vector returned by an Enform. growth is a Vector of normalised
-frequqencies suitable for roulette-wheel selection.
+Based on the given Responses from an Enform, calculate the niche's
+new stability as a Vector of Float64 frequqencies suitable for
+roulette-wheel selection.
 """
-function growth!( niche::Niche, response::Response)
+function stabilise!( niche::Niche, response)
 	missing
 end

@@ -30,7 +30,7 @@ if stringenformunittest
 end
 
 #====================================================================#
-@doc raw"""
+@doc """
 	```ALPHABET```
 
 Complete set of symbols available for building StringEnform targets.
@@ -51,12 +51,12 @@ struct StringEnform <: Enform
 	alphabet							# Common alphabet of symbols
 
 	function StringEnform( targ::String = "")
-    	new( encode( targ), ALPHABET)
+    	new( encodeInternal( targ), ALPHABET)
 	end
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
 	```construct!( senform, profile)``` -> ```response```
 
 In StringEnform, profiles do not change the senform, but are instead
@@ -87,36 +87,67 @@ function Rheolecsis.construct!( senform::StringEnform, profile::Construction)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
+	```encode( senform, strings)```
+
+Encode a Vector of strings into Vectors of indices in ALPHABET.
+"""
+function encode( senform::StringEnform, strings::Vector{String})
+	encodeInternal.( strings)
+end
+
+#---------------------------------------------------------------------
+@doc """
+	```encode( senform, string)```
+
+Encode a single string as a Vector of indices in ALPHABET.
+"""
+function encode( senform::StringEnform, string::String)
+	encodeInternal( string)
+end
+
+#---------------------------------------------------------------------
+@doc """
 	```interpret( senform, profile)```
 
 Interpret the given expression profile as a string.
 """
 function interpret( senform::StringEnform, profile::Construction)
-	interpret.( profile)
+	interpretInternal.( profile)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
-	```interpret( expression)```
+@doc """
+	```interpret( senform, profile)```
 
-Interpret the specific expression as a string.
+Interpret the given expression profile as a string.
 """
-function interpret( expression::Vector{Int})
-	ALPHABET[expression]
+function interpret( senform::StringEnform, profile::Vector{Int})
+	interpretInternal( profile)
 end
 
 #=====================================================================
 # Unexported implementation methods
 =====================================================================#
-@doc raw"""
-	```encode( string)```
+@doc """
+	```encodeInternal( string)```
 
-Convert string to a Vector of indices in ALPHABET.
+(Internal implementation) Convert string to a Vector of indices in
+ALPHABET.
 """
-function encode( string::String)
+function encodeInternal( string::String)
 	map(collect(string)) do ch
 		ff = findfirst(isequal(ch), ALPHABET)
 		(ff === nothing) ? 1 : ff
 	end
+end
+
+#---------------------------------------------------------------------
+@doc """
+	```interpretInternal( expression)```
+
+(Internal implementation) Interpret the specific expression as a string.
+"""
+function interpretInternal( expression::Vector{Int})
+	ALPHABET[expression]
 end

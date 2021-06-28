@@ -1,11 +1,10 @@
-objectivesunittest = true					# Set up unit testing
+objectivesunittest = false					# Set up unit testing
 
 module Objectives
 #=====================================================================
-# A collection of Do Jong and Watson objective functions.
+# A collection of De Jong and Watson objective functions.
 =====================================================================#
-
-using Base: Number
+#using Base: Number
 using Plots, SpecialFunctions
 export Objective, depict
 
@@ -22,7 +21,7 @@ struct Objective
 
 	"Construct a new Objective instance"
 	function Objective( fun=6, dim=0, dom=[[-Inf,Inf]])
-		if fun isa Number
+		if fun isa Int
 			# Use a function from the test suite:
 			if dim == 0
 				# Use default dimension:
@@ -78,7 +77,7 @@ end
 
 Evaluate Objective function for the given vector argument x.
 """
-function (obj::Objective)(x::Vector)
+function (obj::Objective)(x::Vector{Float64})
 	obj.fun(x)
 end
 
@@ -88,7 +87,7 @@ end
 
 Evaluate Objective function for the given number argument x.
 """
-function (obj::Objective)(x::Number)
+function (obj::Objective)(x::Real)
 	obj.fun([x])
 end
 
@@ -120,7 +119,6 @@ function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN; blob=
 		# Extract centre and radius vectors of domain:
 		centre = sum.(obj.domain[dims])/2
 		radius = (getindex.(obj.domain[dims],2) - getindex.(obj.domain[dims],1))/2
-
 	elseif radius === NaN
 		radius = ones(dim)
 	end
@@ -141,12 +139,13 @@ function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN; blob=
 			args[i] = copy(midpt)
 			args[i][dims] = [x[i]]
 		end
-		plot(x,obj.(args))
-		plot!(xlabel="x",ylabel="Evaluation")
+		depiction = plot(x,obj.(args))
+		plot!(depiction,xlabel="x",ylabel="Evaluation")
 
 		if blob !== NaN
 			# Display the blob:
-			plot!([blob[1]],[blob[2]],st=:scatter,ms=10,mc=:lime,shape=:star5,leg=:none)
+			plot!(depiction,[blob[1]],[blob[2]],st=:scatter,
+						ms=10,mc=:lime,shape=:star5,leg=:none)
 		end
 	elseif len == 2
 		# Construct arguments for contour map:
@@ -157,16 +156,29 @@ function depict( obj, dims=1:min(2,obj.dimension), centre=NaN, radius=NaN; blob=
 			args[i,j] = copy(midpt)
 			args[i,j][dims] = [x[j],y[i]]
 		end
-		plot(x,y,obj.(args),st=:contourf)
-		plot!(xlabel="x",ylabel="y")
+		depiction = plot(x,y,obj.(args),st=:contourf)
+		plot!(depiction,xlabel="x",ylabel="y")
 
 		if blob !== NaN
 			# Display the blob:
-			plot!([blob[1]],[blob[2]],st=:scatter,ms=10,mc=:lime,shape=:star5,leg=:none)
+			plot!(depiction,[blob[1]],[blob[2]],st=:scatter,
+						ms=10,mc=:lime,shape=:star5,leg=:none)
 		end
 	else
 		error( "Cannot depict more than 2 dimensions")
 	end
+
+	depiction
+end
+
+#---------------------------------------------------------------------
+@doc raw"""
+    ```hintless( x::Vector)```
+
+Hinton and Nowlan's (1987) hintless function.
+"""
+function hintless( x::Vector)
+	any(x.!=1) ? 0.0 : 1.0
 end
 
 #---------------------------------------------------------------------
@@ -222,8 +234,12 @@ TEST_FUNCTION = [
 # Function 13. Minimum f(-14.58,-20) = -23.806:
 	((x -> x[1].*sin(sqrt(abs(x[1]-(x[2]+9)))) - (x[2]+9).*sin(sqrt(abs(x[2]+0.5*x[1]+9)))),
 		2, [[-20,20]]),
-# Function 14. Watson's maximally epistatic function:
-	(mepi, 128, [[0,1]])
+# Function 14. Hinton and Nowlan's hintless function:
+	(hintless, 30, [[0,1]]),
+# Function 15. Watson's maximally epistatic function:
+	(mepi, 128, [[0,1]]),
+# Function 16. Trivial test function (abs(x)):
+	((x -> abs(x[1])), 1, [[-5,5]])
 ]
 		
 end		# ... of module Objectives
@@ -233,8 +249,11 @@ if objectivesunittest
 	using .Objectives
 	function unittest()
 		println("\n============ Unit test Objectives: ===============")
-		
-		println( 6, "  yields : ", Objective(6)([9.039,8.668]) )
-		depict(Objective(), blob=[9.039,8.668,-18.5547])
+		obj = Objective(6)
+		println(
+			"Objective function 6 has a minimum at the point " *
+			"[9.039,8.668] of ", obj([9.039,8.668])
+		)
+		depict(obj, blob=[9.039,8.668,-18.5547])
 	end
 end

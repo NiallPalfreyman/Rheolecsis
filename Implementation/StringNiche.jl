@@ -1,6 +1,9 @@
 #=====================================================================
 # StringNiche: Niches that display their Affordances as a Vector of
 # indices to an alphabet of symbols.
+# NOTE: Affordance values run from 0:n-1, whereas Niche
+# constructions run from 1:n, since they address characters in strings.
+# Therefore, whenever we convert, we must add or subtract 1!
 =====================================================================#
 stringnicheunittest = false					# Set unit test environment
 if stringnicheunittest
@@ -63,6 +66,26 @@ function StringNiche( nafford::Int, ndata::Int)
 	StringNiche(
 		[Affordance( ndata, length(ALPHABET)) for _ in 1:nafford],
 		2 / (nafford*ndata),
+		zeros(nafford) / nafford,
+		1
+	)
+end
+
+#---------------------------------------------------------------------
+@doc raw"""
+	```StringNiche( prescribe, nafford)```
+
+Construct a StringNiche according to a predefined prescription.
+"""
+function StringNiche( prescribe, nafford::Int)
+	if rem(nafford,2) != 0
+		# Ensure nafford is even for our algorithm:
+		nafford += 1
+	end
+
+	StringNiche(
+		[Affordance( prescribe, length(ALPHABET)) for _ in 1:nafford],
+		2 / (nafford*length(prescribe)),
 		zeros(nafford) / nafford,
 		1
 	)
@@ -134,7 +157,7 @@ function Rheolecsis.recombine!( niche::StringNiche, growth::Vector{Float64})
 	progeny = Vector{Affordance}(undef,nafford)
 	for m in 1:nMatings
 		progeny[m], progeny[m+nMatings] =
-				recombine( mummy[m], daddy[m])
+				Rheolecsis.recombine( mummy[m], daddy[m])
 	end
 
 	# ... and finally replace the old fogeys:
@@ -144,7 +167,7 @@ end
 
 #---------------------------------------------------------------------
 @doc raw"""
-    ```growth!( niche, response) -> stabilities```
+    ```stabilise!( niche, response) -> stability```
 
 Interpret the response from an Enform construction/expression as
 a set of stability conditions on the niche, converting them into a
@@ -153,27 +176,38 @@ the niche's Affordances.
 
 **Note:** This implementation assumes we wish to *minimise* the response!
 """
-function Rheolecsis.growth!( niche::StringNiche, response::Response)
+function Rheolecsis.stabilise!( niche::StringNiche, response::Response)
 	# Normalise the responses into frequencies:
 	sigma = std(response);						# Standard deviation
 	if sigma != 0
 		# Chop off all responses worse than 1 standard deviation
 		# above niche average:
-		growth = 1 .+ (mean(response) .- response) ./ sigma
-		growth[growth .<= 0] .= 0
+		stability = 1 .+ (mean(response) .- response) ./ sigma
+		stability[stability .<= 0] .= 0
 	else
 		# Singular case: all evaluations were equal to mean:
-		growth = ones(length(response))
+		stability = ones(length(response))
 	end
 	
 	# Normalise the growth rates into frequencies:
-	growth /= sum(growth)
+	stability /= sum(stability)
 
 	# Record the most recent responses
 	niche.response = response
-	_, niche.bestresponse = findmax(growth)
+	_, niche.bestresponse = findmax(stability)
 
-	growth
+	stability
+end
+
+#---------------------------------------------------------------------
+@doc raw"""
+    express( affordance)
+
+Express a single Affordance as a Construction
+"""
+function express( niche::StringNiche, aff::Affordance)
+	# Note: Add 1 to convert Affordance to Construction:
+	aff.data .+ 1
 end
 
 #---------------------------------------------------------------------
@@ -183,20 +217,7 @@ end
 Express the StringNiche's Affordances as a Construction
 """
 function Rheolecsis.express( niche::StringNiche)
-	map( niche.affordances) do affordance
-		affordance.data
+	map( niche.affordances) do aff
+		express( niche, aff)
 	end
-end
-
-#---------------------------------------------------------------------
-@doc raw"""
-    show( niche)
-
-Display current status of StringNiche.
-"""
-function Base.show( io::IO, niche::StringNiche)
-	println( io, "\"",
-		interpret(niche.affordances[niche.bestresponse].data),
-		"\" : ", niche.response[niche.bestresponse]
-	)
 end

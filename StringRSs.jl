@@ -25,10 +25,14 @@ struct StringRS
 	niche::StringNiche
 
 	"Construct a new StringRS instance"
-	function StringRS( target::String)
+	function StringRS( target::String, testing=false)
 		len = length( target)
 		enform = StringEnform( target)
-		niche = StringNiche( 1+len÷2, len)
+		if testing
+			niche = StringNiche( StringRSs.encodeInternal(target), 1+len÷2)
+		else
+			niche = StringNiche( 1+len÷2, len)
+		end
 		new( enform, niche)
 	end
 end
@@ -45,12 +49,16 @@ end
 
 #---------------------------------------------------------------------
 @doc raw"""
-    ```show( niche)````
+    ```show( rs)````
 
 Display current status of best Affordance in StringNiche.
 """
 function Base.show( io::IO, rs::StringRS)
-	Base.show( io, rs.niche)
+	aff = rs.niche.affordances[rs.niche.bestresponse]
+	println( io, "\"",
+		interpret( rs.enform, express( rs.niche, aff)),
+		"\" : ", rs.niche.response[rs.niche.bestresponse]
+	)
 end
 
 end		# ... of module StringRAs
@@ -60,7 +68,7 @@ if stringrssunittest
 	using .StringRSs
 	function unittest()
 		println("\n============ Unit test StringRSs: ===============")
-		rs = StringRS("RS's are great fun, aren't they?! :-)")
+		rs = StringRS("RS's are great fun, aren't they?! :-)", true)
 		println( "Initially ...")
 		println( rs);
 		

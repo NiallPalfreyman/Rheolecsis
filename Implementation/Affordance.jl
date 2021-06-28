@@ -1,5 +1,7 @@
 #=====================================================================
 # Abstract Affordance interface: General-purpose Affordances for RA's.
+# Affordance is the home of all random structural variation in a
+# rheolectic system.
 =====================================================================#
 affordanceunittest = false					# Set unit test environment
 if affordanceunittest
@@ -35,7 +37,11 @@ struct Affordance
 	stability::Float64			# Stability of this Affordance
 
 	function Affordance( len, arity)
-		new( 1:arity, rand(1:arity,len), 1.0)
+		new( 0:arity-1, rand(0:arity-1,len), 1.0)
+	end
+
+	function Affordance( prescribe::Vector{Int}, arity)
+		new( 0:arity-1, prescribe, 1.0)
 	end
 
 	function Affordance( alphabet, data, stability)
@@ -61,8 +67,8 @@ Mutate the Affordance at the given loci.
 """
 function mutate!( affordance::Affordance, loci::BitVector)
 	# Mutate loci and wrap symbols around the alphabet range:
-	affordance.data[loci] = 1 .+ mod.(
-		affordance.data[loci] + rand([-1,1],sum(loci)) .-1,
+	affordance.data[loci] = mod.(
+		affordance.data[loci] + rand([-1,1],sum(loci)),
 		length(affordance.alphabet)
 	)
 
