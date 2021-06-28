@@ -7,20 +7,21 @@ module StringRSs
 include("Rheolecsis.jl")
 include("Casinos.jl")
 
-using .Rheolecsis, .Casinos, Random
+using .Rheolecsis, .Casinos
 using Statistics: mean, std
+using Random: shuffle!
 
 include("Implementation/StringEnform.jl")
 include("Implementation/StringNiche.jl")
 
-export StringRS, enact!, express
+export StringRS, enact!, temperature!, mu!, testing!
 
 #====================================================================#
-@doc raw"""
+@doc """
     ```StringRS```
 String-based RS.
 """
-struct StringRS
+struct StringRS <: Rheolecsim
 	enform::StringEnform
 	niche::StringNiche
 
@@ -28,37 +29,58 @@ struct StringRS
 	function StringRS( target::String, testing=false)
 		len = length( target)
 		enform = StringEnform( target)
-		if testing
-			niche = StringNiche( StringRSs.encodeInternal(target), 1+len÷2)
-		else
-			niche = StringNiche( 1+len÷2, len)
-		end
+		niche = StringNiche( 1+len÷2, len)
 		new( enform, niche)
 	end
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
-    ```enact!( rs, steps)````
+@doc """
+    ```niche( rs)````
 
-Enact this RS through a sequence of steps
+Return StringRS's niche.
 """
-function enact!( rs::StringRS, steps::Int)
-	Rheolecsis.enact!( rs.niche, rs.enform, steps)
+function Rheolecsis.niche( rs::StringRS)
+	rs.niche
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
+    ```enform( rs)````
+
+Return StringRS's enform.
+"""
+function Rheolecsis.enform( rs::StringRS)
+	rs.enform
+end
+
+#---------------------------------------------------------------------
+@doc """
+    ```temperature!( rs)````
+
+Set the StringRS's Niche's temperature
+"""
+function temperature!( rs::StringRS, temp::Float64)
+	temperature!( rs.niche, temp)
+end
+
+#---------------------------------------------------------------------
+@doc """
     ```show( rs)````
 
 Display current status of best Affordance in StringNiche.
 """
 function Base.show( io::IO, rs::StringRS)
-	aff = rs.niche.affordances[rs.niche.bestresponse]
+#=	aff = rs.niche.affordances[rs.niche.bestresponse]
 	println( io, "\"",
 		interpret( rs.enform, express( rs.niche, aff)),
 		"\" : ", rs.niche.response[rs.niche.bestresponse]
-	)
+	)=#
+
+	aff, resp = stablest( rs.niche)
+	interpretation = interpret( rs.enform, express( rs.niche, aff))
+
+	println( io, "\"", interpretation, "\" : ", resp)
 end
 
 end		# ... of module StringRAs
@@ -67,6 +89,7 @@ end		# ... of module StringRAs
 if stringrssunittest
 	using .StringRSs
 	function unittest()
+		testing!()
 		println("\n============ Unit test StringRSs: ===============")
 		rs = StringRS("RS's are great fun, aren't they?! :-)", true)
 		println( "Initially ...")

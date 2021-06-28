@@ -46,8 +46,9 @@ to an alphabet of symbols. Intended only for tutorial purposes.
 mutable struct StringNiche <: Rheolecsis.Niche
 	affordances::Vector{Affordance}		# A profile of Affordances
 	mu::Float64							# Affordance mutation rate
-	response::Response					# Current Enform response
-	bestresponse::Int					# Index of best response
+	temperature::Float64				# Sigma-scaling factor
+	response::Response					# Current response values
+	stability::Vector{Float64}			# Corresponding stability values
 end
 
 #---------------------------------------------------------------------
@@ -66,8 +67,9 @@ function StringNiche( nafford::Int, ndata::Int)
 	StringNiche(
 		[Affordance( ndata, length(ALPHABET)) for _ in 1:nafford],
 		2 / (nafford*ndata),
-		zeros(nafford) / nafford,
-		1
+		1,							# temperature
+		ones(nafford)/nafford,		# response
+		ones(nafford)/nafford		# stability
 	)
 end
 
@@ -86,13 +88,37 @@ function StringNiche( prescribe, nafford::Int)
 	StringNiche(
 		[Affordance( prescribe, length(ALPHABET)) for _ in 1:nafford],
 		2 / (nafford*length(prescribe)),
-		zeros(nafford) / nafford,
-		1
-	)
+		1,							# temperature
+		ones(nafford)/nafford,		# response
+		ones(nafford)/nafford		# stability
+)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
+	```temperature!( niche, temp)```
+
+Set the temperature of the StringNiche. All responses worse than
+```temperature``` standard deviations from the mean get removed from
+the population.
+"""
+function temperature!( niche::StringNiche, temp::Float64)
+	niche.temperature = max(min(temp,5),0.1)
+end
+
+#---------------------------------------------------------------------
+@doc """
+	```mu!( niche, mu)```
+
+Set the mutation rate of the StringNiche. ```mu``` is the probability
+that any given Affordance datum is mutated at any given instant.
+"""
+function mu!( niche::StringNiche, mu::Float64)
+	niche.mu = max(min(mu,1),0)
+end
+
+#---------------------------------------------------------------------
+@doc """
 	```size( niche)```
 
 Size of a StringNiche is (naffordances,ndata)
@@ -102,7 +128,7 @@ function size( niche::StringNiche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
 	```mutate!( niche)```
 
 Mutate all Affordances in this Niche with probability niche.mu.
@@ -124,16 +150,17 @@ function Rheolecsis.mutate!( niche::StringNiche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```recombine!( niche, growth)```
 
 Recombine members of the StringNiche affordances based on normalised
 growth rates pre-calculated out of responses from an Enform.
 """
-function Rheolecsis.recombine!( niche::StringNiche, growth::Vector{Float64})
-	roulette = cumsum( growth)/sum(growth)	# Roulette wheel containing
-	nafford, _ = size(niche)				# nchromo repro-biased slots
-	# Uniformly distributed ball throws:
+function Rheolecsis.recombine!( niche::StringNiche)
+	# Set up a roulette wheel of stability-biased slots:
+	roulette = cumsum( niche.stability)/sum(niche.stability)
+	# Set up nafford (rigidly) uniformly distributed ball throws:
+	nafford = size(niche)[1]
 	throws = rem.( rand() .+ (1:nafford)./nafford, 1)
 
 	# Choose reproducing couples by throwing ball onto roulette wheel:
@@ -146,7 +173,7 @@ function Rheolecsis.recombine!( niche::StringNiche, growth::Vector{Float64})
 			end
 		end
 	end
-	Random.shuffle!(parents)		# Shuffle the order of parents
+	shuffle!(parents)		# Shuffle the order of parents
 
 	# First half of parents are Mummies; second half are Daddies:
 	nMatings = nafford ÷ 2
@@ -177,30 +204,41 @@ the niche's Affordances.
 **Note:** This implementation assumes we wish to *minimise* the response!
 """
 function Rheolecsis.stabilise!( niche::StringNiche, response::Response)
+	# Record the niche's current response:
+	niche.response = response
 	# Normalise the responses into frequencies:
-	sigma = std(response);						# Standard deviation
-	if sigma != 0
-		# Chop off all responses worse than 1 standard deviation
-		# above niche average:
-		stability = 1 .+ (mean(response) .- response) ./ sigma
-		stability[stability .<= 0] .= 0
-	else
-		# Singular case: all evaluations were equal to mean:
+	sigma = std(response)						# Standard deviation
+	if sigma == 0
+		# Singular case: all responses were equal to mean:
 		stability = ones(length(response))
+	else
+		# Exorcise all responses worse than 1/temperature standard
+		# deviations above niche average:
+		stability = 1 .+ (mean(response) .- response) ./
+						(sigma*niche.temperature)
+		stability[stability .<= 0] .= 0
 	end
 	
-	# Normalise the growth rates into frequencies:
-	stability /= sum(stability)
-
-	# Record the most recent responses
-	niche.response = response
-	_, niche.bestresponse = findmax(stability)
-
-	stability
+	# Normalise the stability rates into frequencies:
+	niche.stability = stability / sum(stability)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
+    ```stablest( niche) -> stablestaffordance, stability```
+
+Return the staAffordance with best response, together with that response.
+"""
+function stablest( niche::StringNiche)
+	_,stablest = findmax(niche.stability)
+	(
+		niche.affordances[stablest],
+		niche.response[stablest]
+	)
+end
+
+#---------------------------------------------------------------------
+@doc """
     express( affordance)
 
 Express a single Affordance as a Construction
@@ -211,7 +249,7 @@ function express( niche::StringNiche, aff::Affordance)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     express( niche)
 
 Express the StringNiche's Affordances as a Construction

@@ -11,7 +11,7 @@ if geneticnicheunittest
 	include("../Objectives.jl")
 	include("../Decoders.jl")
 	using .Rheolecsis, .Casinos, .Objectives, .Decoders, Random
-	include("BinaryEnforms.jl")
+	include("BinaryEnform.jl")
 	using Statistics: mean, std
 
 	function unittest()
@@ -90,7 +90,7 @@ function mu!( niche::GeneticNiche, mu::Float64)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
 	```size( niche)```
 
 Size of a GeneticNiche is (naffordances,ndata)
@@ -100,7 +100,7 @@ function size( niche::GeneticNiche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
 	```mutate!( niche)```
 
 Mutate all Affordances in this Niche with probability niche.mu.
@@ -122,7 +122,7 @@ function Rheolecsis.mutate!( niche::GeneticNiche)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```recombine!( niche, select)```
 
 Recombine members of the GeneticNiche affordances based on selection
@@ -145,7 +145,7 @@ function Rheolecsis.recombine!( niche::GeneticNiche)
 			end
 		end
 	end
-	Random.shuffle!(parents)		# Shuffle the order of parents
+	shuffle!(parents)				# Shuffle the order of parents
 
 	# First half of parents are Mummies; second half are Daddies:
 	nMatings = nafford ÷ 2
@@ -204,9 +204,20 @@ Return the staAffordance with best response, together with that response.
 function stablest( niche::GeneticNiche)
 	_,stablest = findmax(niche.stability)
 	(
-		niche.affordances[stablest].data,
+		niche.affordances[stablest],
 		niche.response[stablest]
 	)
+end
+
+#---------------------------------------------------------------------
+@doc """
+    express( affordance)
+
+Express a single Affordance as a Construction
+"""
+function express( niche::GeneticNiche, aff::Affordance)
+	# Convert Affordance to Construction:
+	aff.data
 end
 
 #---------------------------------------------------------------------
@@ -216,7 +227,7 @@ end
 Express the GeneticNiche's Affordances as a Construction
 """
 function Rheolecsis.express( niche::GeneticNiche)
-	map( niche.affordances) do affordance
-		affordance.data
+	map( niche.affordances) do aff
+		express( niche, aff)
 	end
 end

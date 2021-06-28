@@ -9,16 +9,17 @@ include("Casinos.jl")
 include("Objectives.jl")
 include("Decoders.jl")
 
-using .Rheolecsis, .Casinos, .Objectives, .Decoders, Random
+using .Rheolecsis, .Casinos, .Objectives, .Decoders
 using Statistics: mean, std
+using Random: shuffle!
 
-include("Implementation/BinaryEnforms.jl")
-include("Implementation/GeneticNiches.jl")
+include("Implementation/BinaryEnform.jl")
+include("Implementation/GeneticNiche.jl")
 
 export GeneticRS, Objective, enact!, temperature!, mu!, testing!
 
 #====================================================================#
-@doc raw"""
+@doc """
     ```GeneticRS```
 Genetic optimising RS.
 """
@@ -36,7 +37,7 @@ struct GeneticRS <: Rheolecsim
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```niche( rs)````
 
 Return GeneticRS's niche.
@@ -46,7 +47,7 @@ function Rheolecsis.niche( rs::GeneticRS)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```enform( rs)````
 
 Return GeneticRS's enform.
@@ -56,7 +57,7 @@ function Rheolecsis.enform( rs::GeneticRS)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```temperature!( rs)````
 
 Set the GeneticRS's Niche's temperature
@@ -66,14 +67,14 @@ function temperature!( rs::GeneticRS, temp::Float64)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```show( rs)````
 
 Display current status of best Affordance in GeneticNiche.
 """
 function Base.show( io::IO, rs::GeneticRS)
 	aff, resp = stablest( rs.niche)
-	interpretation = interpret( rs.enform, aff)
+	interpretation = interpret( rs.enform, express( rs.niche, aff))
 
 	println( io, "\"", interpretation, "\" : ", resp)
 end

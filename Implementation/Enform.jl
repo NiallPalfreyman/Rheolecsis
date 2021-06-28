@@ -28,22 +28,22 @@ abstract type Enform end;
 
 #---------------------------------------------------------------------
 @doc """
-	```construct!( enform, profile) -> Response```
+	```construct!( enform, construct) -> Response```
 
 Construct Enform according to a construction profile, in general
 generating changes that result in an success scoring of the profile.
 """
-function construct!( enform::Enform, profile::Construction)
+function construct!( enform::Enform, construct::Construction)
 	missing												# Response
 end
 
 #---------------------------------------------------------------------
 @doc """
-	```interpret( enform, profile)``` -> ```String```
+	```interpret( enform, construct)``` -> ```String```
 
 For display purposes, interpret the given construction profile within the
 given Enform as a string.
 """
-function interpret( enform::Enform, profile::Construction)
+function interpret( enform::Enform, construct::Construction)
 	missing										# Printable decoding
 end

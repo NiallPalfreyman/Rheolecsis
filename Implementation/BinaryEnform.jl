@@ -35,7 +35,7 @@ end
 @doc """
 	```BinaryEnform```
 
-A simple Enform that evaluates a according to its ability to
+A non-interacting Enform that evaluates a according to its ability to
 minimise an Objective function.
 """
 struct BinaryEnform <: Enform
@@ -55,7 +55,7 @@ The expression profile does not change benform, but instead benform
 simply evaluates exprprofile with no side-effects according to its
 ability to minimise the benform's Objective function.
 """
-function Rheolecsis.construct!( benform::BinaryEnform, eprofile::Vector{Vector{Int}})
+function Rheolecsis.construct!( benform::BinaryEnform, eprofile::Construction{Int})
 	# First interpret the expression profile ...
 	cprofile = interpret( benform, eprofile)
 
@@ -82,7 +82,7 @@ end
 
 Interpret the given expression profile as a construction profile.
 """
-function interpret( benform::BinaryEnform, eprofile::Vector{Vector{Int}})
+function interpret( benform::BinaryEnform, eprofile::Construction{Int})
 	benform.decoder.( eprofile)
 end
 

@@ -49,7 +49,7 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-    ```express( niche)```
+    ```express( niche) -> construction```
 
 Express the Niche's Affordances as a Construction.
 """
