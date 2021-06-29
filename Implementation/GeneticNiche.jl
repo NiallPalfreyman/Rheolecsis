@@ -168,7 +168,7 @@ end
 @doc """
     ```stabilise!( niche, response) -> stability```
 
-Interpret the response from an Enform construction/expression as
+Interpret the response from an Enform construction/exploration as
 a set of stability conditions on the niche, converting them into a
 vector of normalised scores suitable for roulette-wheel selection on
 the niche's Affordances.
@@ -211,23 +211,23 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-    express( affordance)
+    explore( affordance)
 
-Express a single Affordance as a Construction
+Explore a single Affordance as a Construction
 """
-function express( niche::GeneticNiche, aff::Affordance)
+function explore( niche::GeneticNiche, aff::Affordance)
 	# Convert Affordance to Construction:
 	aff.data
 end
 
 #---------------------------------------------------------------------
 @doc """
-    ```express( niche)```
+    ```explore( niche)```
 
-Express the GeneticNiche's Affordances as a Construction
+Explore the GeneticNiche's Affordances as a Construction
 """
-function Rheolecsis.express( niche::GeneticNiche)
+function Rheolecsis.explore( niche::GeneticNiche)
 	map( niche.affordances) do aff
-		express( niche, aff)
+		explore( niche, aff)
 	end
 end

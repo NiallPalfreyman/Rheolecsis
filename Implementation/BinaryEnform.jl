@@ -1,5 +1,5 @@
 #=====================================================================
-# BinaryEnform: A simple Enform that evaluates expressions according
+# BinaryEnform: A simple Enform that evaluates explorations according
 # to their minimisation of an Objective function.
 =====================================================================#
 binaryenformunittest = false				# Set unit test environment
@@ -51,12 +51,12 @@ end
 @doc """
 	```construct!( benform, exprprofile)``` -> ```response```
 
-The expression profile does not change benform, but instead benform
+The exploration profile does not change benform, but instead benform
 simply evaluates exprprofile with no side-effects according to its
 ability to minimise the benform's Objective function.
 """
 function Rheolecsis.construct!( benform::BinaryEnform, eprofile::Construction{Int})
-	# First interpret the expression profile ...
+	# First interpret the exploration profile ...
 	cprofile = interpret( benform, eprofile)
 
 	# ... then perform any constructions ...
@@ -70,7 +70,7 @@ end
 @doc """
 	```exprprofile( benform, data)```
 
-Encode the list of data values as an expression profile.
+Encode the list of data values as an exploration profile.
 """
 function exprprofile( benform::BinaryEnform, data::Vector{Float64})
 	encode( benform.decoder, data)
@@ -80,7 +80,7 @@ end
 @doc """
 	```interpret( benform, eprofile)```
 
-Interpret the given expression profile as a construction profile.
+Interpret the given exploration profile as a construction profile.
 """
 function interpret( benform::BinaryEnform, eprofile::Construction{Int})
 	benform.decoder.( eprofile)
@@ -88,10 +88,10 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-	```interpret( benform, expression)```
+	```interpret( benform, exploration)```
 
-Interpret the expression as an individual construction.
+Interpret the exploration as an individual construction.
 """
-function interpret( benform::BinaryEnform, expression::Vector{Int})
-	benform.decoder( expression)
+function interpret( benform::BinaryEnform, exploration::Vector{Int})
+	benform.decoder( exploration)
 end

@@ -110,7 +110,7 @@ end
 @doc """
 	```interpret( senform, profile)```
 
-Interpret the given expression profile as a string.
+Interpret the given exploration profile as a string.
 """
 function interpret( senform::StringEnform, profile::Construction)
 	interpretInternal.( profile)
@@ -120,7 +120,7 @@ end
 @doc """
 	```interpret( senform, profile)```
 
-Interpret the given expression profile as a string.
+Interpret the given exploration profile as a string.
 """
 function interpret( senform::StringEnform, profile::Vector{Int})
 	interpretInternal( profile)
@@ -144,10 +144,10 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-	```interpretInternal( expression)```
+	```interpretInternal( exploration)```
 
-(Internal implementation) Interpret the specific expression as a string.
+(Internal implementation) Interpret the specific exploration as a string.
 """
-function interpretInternal( expression::Vector{Int})
-	ALPHABET[expression]
+function interpretInternal( exploration::Vector{Int})
+	ALPHABET[exploration]
 end

@@ -71,7 +71,7 @@ niche-enform configuration, then recording the enform responses and
 their associated stabilities.
 """
 function embed!( niche::Niche, enform::Enform)
-	construction = express(niche)			# Niche's expression defines
+	construction = explore(niche)			# Niche's exploration defines
 	response =								# ... its constructions, and
 		construct!(enform,construction)		# ... enform responses then
 	stabilise!(niche,response)				# ... define its new stability.

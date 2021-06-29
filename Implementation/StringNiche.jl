@@ -19,12 +19,12 @@ if stringnicheunittest
 		println("Create a StringNiche with 5 Affordances of 15 data:")
 		niche = StringNiche(5,15)
 		display(niche)
-		println("... and express them:  $(interpret.(express(niche)))")
+		println("... and explore them:  $(interpret.(explore(niche)))")
 		mutate!( niche)
-		println("Mutate and re-express: $(interpret.(express(niche)))")
+		println("Mutate and re-explore: $(interpret.(explore(niche)))")
 		recombine!( niche, Float64.(1:6))
 		println()
-		println("Now recombine them:    $(interpret.(express(niche)))")
+		println("Now recombine them:    $(interpret.(explore(niche)))")
 	end
 end
 
@@ -196,7 +196,7 @@ end
 @doc raw"""
     ```stabilise!( niche, response) -> stability```
 
-Interpret the response from an Enform construction/expression as
+Interpret the response from an Enform construction/exploration as
 a set of stability conditions on the niche, converting them into a
 vector of normalised scores suitable for roulette-wheel selection on
 the niche's Affordances.
@@ -239,23 +239,23 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-    express( affordance)
+    explore( affordance)
 
-Express a single Affordance as a Construction
+Explore a single Affordance as a Construction
 """
-function express( niche::StringNiche, aff::Affordance)
+function explore( niche::StringNiche, aff::Affordance)
 	# Note: Add 1 to convert Affordance to Construction:
 	aff.data .+ 1
 end
 
 #---------------------------------------------------------------------
 @doc """
-    express( niche)
+    explore( niche)
 
-Express the StringNiche's Affordances as a Construction
+Explore the StringNiche's Affordances as a Construction
 """
-function Rheolecsis.express( niche::StringNiche)
+function Rheolecsis.explore( niche::StringNiche)
 	map( niche.affordances) do aff
-		express( niche, aff)
+		explore( niche, aff)
 	end
 end

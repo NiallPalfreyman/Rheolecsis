@@ -49,11 +49,11 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-    ```express( niche) -> construction```
+    ```explore( niche) -> construction```
 
-Express the Niche's Affordances as a Construction.
+Explore the Niche's Affordances as a Construction.
 """
-function express( niche::Niche)
+function explore( niche::Niche)
 	missing
 end
 

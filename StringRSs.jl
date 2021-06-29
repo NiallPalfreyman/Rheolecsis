@@ -71,14 +71,8 @@ end
 Display current status of best Affordance in StringNiche.
 """
 function Base.show( io::IO, rs::StringRS)
-#=	aff = rs.niche.affordances[rs.niche.bestresponse]
-	println( io, "\"",
-		interpret( rs.enform, express( rs.niche, aff)),
-		"\" : ", rs.niche.response[rs.niche.bestresponse]
-	)=#
-
 	aff, resp = stablest( rs.niche)
-	interpretation = interpret( rs.enform, express( rs.niche, aff))
+	interpretation = interpret( rs.enform, explore( rs.niche, aff))
 
 	println( io, "\"", interpretation, "\" : ", resp)
 end

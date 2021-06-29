@@ -74,7 +74,7 @@ Display current status of best Affordance in GeneticNiche.
 """
 function Base.show( io::IO, rs::GeneticRS)
 	aff, resp = stablest( rs.niche)
-	interpretation = interpret( rs.enform, express( rs.niche, aff))
+	interpretation = interpret( rs.enform, explore( rs.niche, aff))
 
 	println( io, "\"", interpretation, "\" : ", resp)
 end
