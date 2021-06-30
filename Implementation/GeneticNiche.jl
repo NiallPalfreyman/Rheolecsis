@@ -1,4 +1,3 @@
-#using Base: Float64
 #=====================================================================
 # GeneticNiche: Niches that recombine, mutate and display their
 # Affordances directly as traits.
@@ -22,7 +21,7 @@ if geneticnicheunittest
 		mutate!( niche)
 		println("Mutated:")
 		display(niche.affordances)
-		recombine!( niche, collect(1.0:6))
+		recombine!( niche)
 		println()
 		println("... and then recombined:")
 		display(niche.affordances)
@@ -44,7 +43,7 @@ const CASINO = Casinos.Casino()
 A GeneticNiche with nafford Affordances, each containing ndata data
 with given arity.
 """
-mutable struct GeneticNiche <: Rheolecsis.Niche
+mutable struct GeneticNiche <: Niche
 	affordances::Vector{Affordance}		# Affordance profile
 	explarity::Int						# Exploratory arity
 	mu::Float64							# Affordance mutation rate
@@ -237,7 +236,7 @@ Implement the GeneticNiche's Affordances as an Exploration
 function Rheolecsis.explore( niche::GeneticNiche)
 	nafford = size(niche)[1]
 	exploration = [similar(niche.affordances[1].data) for _ ∈ 1:nafford]
-
+	
 	for i ∈ 1:nafford
 		# Convert Affordances to Explorations:
 		exploration[i][:] = niche.affordances[i].data[:]

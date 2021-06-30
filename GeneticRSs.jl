@@ -85,6 +85,20 @@ function Base.show( io::IO, rs::GeneticRS)
 	println( io, "\"", interpretation, "\" : ", resp)
 end
 
+#---------------------------------------------------------------------
+@doc """
+    ```embed!( niche, enform)```
+
+Reimplementation of the Rheolecsis embed! method to allow for multiple
+explorations by one niche.
+"""
+function Rheolecsis.embed!( niche::GeneticNiche, enform::BinaryEnform)
+	exploration = Rheolecsis.explore(niche)		# Niche's exploration ...
+	response =							# defines its constructions ...
+		construct!(enform,exploration)	# and the enform's responses ...
+	stabilise!(niche,response)			# then define the new stability.
+end
+
 end		# ... of module GeneticRSs
 
 #========================= Unit testing =============================#

@@ -12,7 +12,7 @@ using Random:seed!
 
 export Rheolecsim, Enform, Niche, Affordance, Construction, Response
 export size, arity, mutate!, recombine!, enact!, construct!
-export embed!, determinate!, stabilise!
+export embed!, determinate!, stabilise!, explore
 
 #====================================================================#
 @doc """
