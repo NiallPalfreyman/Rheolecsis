@@ -4,6 +4,7 @@ module GeneticRSs
 #=====================================================================
 # Genetic RSs.
 =====================================================================#
+using Base: Unsigned
 include("Rheolecsis.jl")
 include("Casinos.jl")
 include("Objectives.jl")
@@ -16,7 +17,8 @@ using Random: shuffle!
 include("Implementation/BinaryEnform.jl")
 include("Implementation/GeneticNiche.jl")
 
-export GeneticRS, Objective, enact!, temperature!, mu!, testing!
+export GeneticRS, Objective, enact!, temperature!, mu!, determinate!
+export nohint, mepi, niche, enform, stablest
 
 #====================================================================#
 @doc """
@@ -28,9 +30,13 @@ struct GeneticRS <: Rheolecsim
 	niche::GeneticNiche
 
 	"Construct a new GeneticRS instance"
-	function GeneticRS( obj::Objective, accuracy::Int, nafford::Int)
-		enform = BinaryEnform( obj, accuracy)
-		niche = GeneticNiche( nafford, accuracy*obj.dimension)
+	function GeneticRS( obj::Objective, accuracy::Int, nafford::Int;
+		explarity::Int=2, curiosity::Int=0
+	)
+		enform = BinaryEnform( obj, accuracy, explarity)
+		niche = GeneticNiche( nafford, accuracy*obj.dimension,
+			explarity=explarity, curiosity=curiosity
+		)
 		embed!( niche, enform)
 		new(enform,niche)
 	end
@@ -85,19 +91,33 @@ end		# ... of module GeneticRSs
 if geneticrssunittest
 	using .GeneticRSs
 
-	function unittest()
-		testing!()									# Make rng determinate
+	function unittest( complexity::Int=13, nruns::Int=100)
 		println("\n============ Unit test GeneticRSs: ===============")
-		rs = GeneticRS( Objective(6), 15, 16)		# De Jong 6
-#		rs = GeneticRS( Objective(14), 1, 16)		# Hinton & Nowlan 1987
-#		rs = GeneticRS( Objective(15), 1, 16)		# Watson 2007
+		# De Jong (1989):
+#		rs = GeneticRS( Objective(6), 15, 20)	# De Jong 6
+		# Watson (2007) - complexity 128:
+#		rs = GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20)
 
-		temperature!( rs, 2.0)
-		println( "Initially ", rs)
-		
-		n = 1000
-		enact!( rs, n)
-		println( "After $(n) generation(s) ...")
-		println( rs)
+		nsuccess0 = 0
+		nsuccess1 = 0
+		for _ ∈ 1:nruns
+			# Hinton & Nowlan 1987, without and with curiosity:
+			rs0 = GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20)
+			rs1 = GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=1)
+
+			enact!(rs0,1000)
+			enact!(rs1,1000)
+
+			if stablest(rs0.niche)[2] == 0.0
+				nsuccess0 += 1
+			end
+			if stablest(rs1.niche)[2] == 0.0
+				nsuccess1 += 1
+			end
+		end
+
+		println( "Results after $(nruns) generations using $(complexity) bits ...")
+		println( "Success without curiosity:  ", nsuccess0)
+		println( "Success with curiosity:     ", nsuccess1)
 	end
 end

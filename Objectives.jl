@@ -4,9 +4,8 @@ module Objectives
 #=====================================================================
 # A collection of De Jong and Watson objective functions.
 =====================================================================#
-#using Base: Number
 using Plots, SpecialFunctions
-export Objective, depict
+export Objective, depict, nohint, mepi
 
 #====================================================================#
 @doc raw"""
@@ -77,7 +76,7 @@ end
 
 Evaluate Objective function for the given vector argument x.
 """
-function (obj::Objective)(x::Vector{Float64})
+function (obj::Objective)(x::Vector)
 	obj.fun(x)
 end
 
@@ -173,19 +172,19 @@ end
 
 #---------------------------------------------------------------------
 @doc raw"""
-    ```hintless( x::Vector)```
+    ```clueless( x::Vector)```
 
-Hinton and Nowlan's (1987) hintless function.
+Hinton and Nowlan's (1987) nohint objective.
 """
-function hintless( x::Vector)
-	any(x.!=1) ? 0.0 : 1.0
+function nohint( x::Vector)
+	any(x.!=1) ? 1.0 : 0.0
 end
 
 #---------------------------------------------------------------------
 @doc raw"""
     ```mepi( x::Vector)```
 
-Watson's (2007) maximally epistatic objective function.
+Watson's (2007) maximally epistatic objective.
 """
 function mepi( x::Vector)
 	dim = length(x)
@@ -234,8 +233,8 @@ TEST_FUNCTION = [
 # Function 13. Minimum f(-14.58,-20) = -23.806:
 	((x -> x[1].*sin(sqrt(abs(x[1]-(x[2]+9)))) - (x[2]+9).*sin(sqrt(abs(x[2]+0.5*x[1]+9)))),
 		2, [[-20,20]]),
-# Function 14. Hinton and Nowlan's hintless function:
-	(hintless, 30, [[0,1]]),
+# Function 14. Hinton and Nowlan's nohint function:
+	(nohint, 30, [[0,1]]),
 # Function 15. Watson's maximally epistatic function:
 	(mepi, 128, [[0,1]]),
 # Function 16. Trivial test function (abs(x)):

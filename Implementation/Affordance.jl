@@ -32,20 +32,20 @@ end
 General-purpose Affordance: a Vector of symbols from an Int alphabet.
 """
 struct Affordance
-	alphabet::UnitRange			# Range (arity) of affordance symbols
+	arity::Int					# Range (arity) of affordance symbols
 	data::Vector{Int}			# The Affordance data
 	stability::Float64			# Stability of this Affordance
 
 	function Affordance( len, arity)
-		new( 0:arity-1, rand(0:arity-1,len), 1.0)
+		new( arity, rand(0:arity-1,len), 1.0)
 	end
 
 	function Affordance( prescribe::Vector{Int}, arity)
-		new( 0:arity-1, prescribe, 1.0)
+		new( arity, prescribe, 1.0)
 	end
 
-	function Affordance( alphabet, data, stability)
-		new( alphabet, data, stability)
+	function Affordance( arity, data, stability)
+		new( arity, data, stability)
 	end
 end
 
@@ -55,8 +55,18 @@ end
 
 Return length and arity of the Affordance
 """
-function size( affordance::Affordance)
-	(length(affordance.data),length(affordance.alphabet))
+function size( aff::Affordance)
+	(length(aff.data),aff.arity)
+end
+
+#---------------------------------------------------------------------
+@doc raw"""
+    ```arity( affordance)```
+
+Return arity of the Affordance
+"""
+function arity( aff::Affordance)
+	aff.arity
 end
 
 #---------------------------------------------------------------------
@@ -65,14 +75,12 @@ end
 
 Mutate the Affordance at the given loci.
 """
-function mutate!( affordance::Affordance, loci::BitVector)
+function mutate!( aff::Affordance, loci::BitVector)
 	# Mutate loci and wrap symbols around the alphabet range:
-	affordance.data[loci] = mod.(
-		affordance.data[loci] + rand([-1,1],sum(loci)),
-		length(affordance.alphabet)
-	)
+	aff.data[loci] =
+		mod.( aff.data[loci] + rand([-1,1],sum(loci)), aff.arity)
 
-	affordance
+	aff
 end
 
 #---------------------------------------------------------------------
@@ -91,7 +99,7 @@ function recombine( mummy::Affordance, daddy::Affordance)
 	billy[xPt+1:end] = mummy.data[xPt+1:end]
 
 	(
-		Affordance(mummy.alphabet,sally,mummy.stability),
-		Affordance(daddy.alphabet,billy,daddy.stability)
+		Affordance(mummy.arity,sally,mummy.stability),
+		Affordance(daddy.arity,billy,daddy.stability)
 	)
 end

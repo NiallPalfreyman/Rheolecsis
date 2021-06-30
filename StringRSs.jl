@@ -14,7 +14,7 @@ using Random: shuffle!
 include("Implementation/StringEnform.jl")
 include("Implementation/StringNiche.jl")
 
-export StringRS, enact!, temperature!, mu!, testing!
+export StringRS, enact!, temperature!, mu!, determinate!
 
 #====================================================================#
 @doc """
@@ -26,7 +26,7 @@ struct StringRS <: Rheolecsim
 	niche::StringNiche
 
 	"Construct a new StringRS instance"
-	function StringRS( target::String, testing=false)
+	function StringRS( target::String)
 		len = length( target)
 		enform = StringEnform( target)
 		niche = StringNiche( 1+len÷2, len)
@@ -83,9 +83,9 @@ end		# ... of module StringRAs
 if stringrssunittest
 	using .StringRSs
 	function unittest()
-		testing!()
+		determinate!()
 		println("\n============ Unit test StringRSs: ===============")
-		rs = StringRS("RS's are great fun, aren't they?! :-)", true)
+		rs = StringRS("RS's are great fun, aren't they?! :-)")
 		println( "Initially ...")
 		println( rs);
 		

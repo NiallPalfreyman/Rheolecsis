@@ -42,8 +42,8 @@ struct BinaryEnform <: Enform
 	objective::Objective	# Objective function for evaluating profiles
 	decoder::Decoder		# Binary decoder
 
-	function BinaryEnform( obj::Objective, accuracy::Int=15)
-		new( obj, Decoder(obj.domain,accuracy))
+	function BinaryEnform( obj::Objective, accuracy::Int=15, arity::Int=2)
+		new( obj, Decoder(obj.domain,accuracy,arity))
 	end
 end
 

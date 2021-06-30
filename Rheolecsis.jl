@@ -11,18 +11,18 @@ include("Implementation/Niche.jl")
 using Random:seed!
 
 export Rheolecsim, Enform, Niche, Affordance, Construction, Response
-export size, mutate!, recombine!, enact!, construct!, stabilise!
-export embed!, testing!
+export size, arity, mutate!, recombine!, enact!, construct!
+export embed!, determinate!, stabilise!
 
 #====================================================================#
-@doc raw"""
+@doc """
     ```Rheolecsim```
 Abstract interface for all RheolecticSimulations.
 """
 abstract type Rheolecsim end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```enact!( niche, enform, nSteps)```
 
 Return the Rheolecsim's niche.
@@ -32,7 +32,7 @@ function niche( rs::Rheolecsim)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```enact!( niche, enform, nSteps)```
 
 Return the Rheolecsim's enform.
@@ -42,7 +42,7 @@ function enform( rs::Rheolecsim)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```enact!( rs, nSteps)```
 
 Enact the RS's niche through nSteps, using mutation and recombination
@@ -63,28 +63,28 @@ function enact!( rs::Rheolecsim, nSteps::Int)
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
+@doc """
     ```embed!( niche, enform)```
 
-Embed a niche within an enform, thereby setting up the initial
-niche-enform configuration, then recording the enform responses and
-their associated stabilities.
+Embed a niche within an enform to set up the initial niche-enform
+configuration, recording the enform responses and the niche's
+associated stabilities.
 """
 function embed!( niche::Niche, enform::Enform)
-	construction = explore(niche)			# Niche's exploration defines
-	response =								# ... its constructions, and
-		construct!(enform,construction)		# ... enform responses then
-	stabilise!(niche,response)				# ... define its new stability.
+	exploration = explore(niche)		# Niche's exploration ...
+	response =							# defines its constructions ...
+		construct!(enform,exploration)	# and the enform's responses ...
+	stabilise!(niche,response)			# then define the new stability.
 end
 
 #---------------------------------------------------------------------
-@doc raw"""
-    ```testing!(testing)````
+@doc """
+    ```determinate!(determinate!)````
 
 Seed the RS's random generator for testing purposes.
 """
-function testing!(testing::Bool=true)
-	if testing							# Make rng ...
+function determinate!(determinate!::Bool=true)
+	if determinate!							# Make rng ...
 		seed!(5)						# ... determinate ...
 	else
 		seed!()							# ... or non-determinate

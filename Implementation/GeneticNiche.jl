@@ -46,18 +46,22 @@ with given arity.
 """
 mutable struct GeneticNiche <: Rheolecsis.Niche
 	affordances::Vector{Affordance}		# Affordance profile
+	explarity::Int						# Exploratory arity
 	mu::Float64							# Affordance mutation rate
 	temperature::Float64				# Sigma-scaling factor
 	response::Response					# Current response values
 	stability::Vector{Float64}			# Corresponding stability values
 
-	function GeneticNiche( nafford::Int, ndata::Int, arity::Int=2)
+	function GeneticNiche( nafford::Int, ndata::Int;
+		explarity::Int=2, curiosity::Int=0
+	)
 		if rem(nafford,2) != 0
 			# nafford must be even for our recombination algorithm:
 			nafford += 1
 		end
 		new(
-			[Affordance( ndata, arity) for _ ∈ 1:nafford],
+			[Affordance( ndata, explarity+curiosity) for _ ∈ 1:nafford],
+			explarity,					# explarity
 			2/(nafford*ndata),			# mu (2 per generation)
 			1,							# temperature
 			ones(nafford)/nafford,		# response
@@ -213,21 +217,33 @@ end
 @doc """
     explore( affordance)
 
-Explore a single Affordance as a Construction
+Implement a single Affordance as an Exploration
 """
 function explore( niche::GeneticNiche, aff::Affordance)
-	# Convert Affordance to Construction:
-	aff.data
+	# Convert Affordance to Exploration:
+	exploration = copy(aff.data)
+	curiosity = (exploration .≥ niche.explarity)
+	exploration[curiosity] = rand(0:niche.explarity-1,sum(curiosity))
+
+	exploration
 end
 
 #---------------------------------------------------------------------
 @doc """
     ```explore( niche)```
 
-Explore the GeneticNiche's Affordances as a Construction
+Implement the GeneticNiche's Affordances as an Exploration
 """
 function Rheolecsis.explore( niche::GeneticNiche)
-	map( niche.affordances) do aff
-		explore( niche, aff)
+	nafford = size(niche)[1]
+	exploration = [similar(niche.affordances[1].data) for _ ∈ 1:nafford]
+
+	for i ∈ 1:nafford
+		# Convert Affordances to Explorations:
+		exploration[i][:] = niche.affordances[i].data[:]
+		curiosity = (exploration[i] .≥ niche.explarity)
+		exploration[i][curiosity] = rand(0:niche.explarity-1,sum(curiosity))
 	end
+
+	exploration
 end

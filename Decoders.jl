@@ -13,20 +13,20 @@ export Decoder, encode
 Decoder between n-ary vectors and Float64 vectors.
 """
 struct Decoder
-	base::Int					# n-ary base alphabet
+	arity::Int					# n-ary coding base
 	lo::Vector{Float64}			# Low value of each domain dimension
 	ndims::Int					# Number of dimensions in domain
 	nplaces::Int				# Number of places encoding each dimension
 	decoder::Matrix{Float64}	# Matrix of place contributions
 
 	"Construct a new Decoder instance"
-	function Decoder( dom=[[0.0,1.0]], nplaces::Int=15, base::Int=2)
+	function Decoder( dom=[[0.0,1.0]], nplaces::Int=15, arity::Int=2)
 		# Set up decoding apparatus ...
 		spans = [dom[i][2]-dom[i][1] for i in 1:length(dom)]
-		nary_places = (1/base).^(1:nplaces)
+		nary_places = (1/arity).^(1:nplaces)
 		nary_places = nary_places / sum(nary_places)
 		# ... then create Decoder instance:
-		new( base, map(x->x[1],dom), length(dom),
+		new( arity, map(x->x[1],dom), length(dom),
 				nplaces, (spans*nary_places'))
 	end
 end
@@ -38,7 +38,7 @@ end
 Return the alphabet of this Decoder.
 """
 function alphabet(decod::Decoder)
-	0:decod.base-1
+	0:decod.arity-1
 end
 		
 #---------------------------------------------------------------------
