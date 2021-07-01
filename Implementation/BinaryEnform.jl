@@ -41,9 +41,10 @@ minimise an Objective function.
 struct BinaryEnform <: Enform
 	objective::Objective	# Objective function for evaluating profiles
 	decoder::Decoder		# Binary decoder
+	arity::Int				# Arity of constructions and decoder
 
 	function BinaryEnform( obj::Objective, accuracy::Int=15, arity::Int=2)
-		new( obj, Decoder(obj.domain,accuracy,arity))
+		new( obj, Decoder(obj.domain,accuracy,arity), arity)
 	end
 end
 
@@ -55,15 +56,34 @@ The exploration profile does not change benform, but instead benform
 simply evaluates exprprofile with no side-effects according to its
 ability to minimise the benform's Objective function.
 """
-function Rheolecsis.construct!( benform::BinaryEnform, eprofile::Construction{Int})
-	# First interpret the exploration profile ...
-	cprofile = interpret( benform, eprofile)
+function Rheolecsis.construct!( enform::BinaryEnform, exploration::Construction{Int})
+	indeterminacy = map(exploration) do x
+		# Locate all exploration indeterminacies:
+		x .>= enform.arity
+	end
 
-	# ... then perform any constructions ...
-	# (None)
-
-	# ... and finally record the response:
-	benform.objective.( cprofile)
+	if any(any.(indeterminacy))
+		# Interpret indeterminate constructions:
+		len = length(exploration)
+		objectives = fill(Inf,len)
+		nindet = sum.(indeterminacy)
+		for i in 1:len
+			# Convert Explorations to Constructions:
+			expl = rand(0:enform.arity-1,(nindet[i],100))
+			for j in 1:100
+				# Perform 100 explorations:
+				exploration[i][indeterminacy[i]] = expl[:,j]
+				objeval = enform.objective( interpret( enform, exploration[i]))
+				if objeval < objectives[i]
+					objectives[i] = objeval
+				end
+			end
+		end
+		objectives
+	else
+		# Imterpret constructions deterministically:
+		enform.objective.( interpret( enform, exploration))
+	end
 end
 
 #---------------------------------------------------------------------

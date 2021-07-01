@@ -202,7 +202,7 @@ end
 @doc """
     ```stablest( niche) -> stablestaffordance, stability```
 
-Return the staAffordance with best response, together with that response.
+Return the Affordance with stablest response, together with that response.
 """
 function stablest( niche::GeneticNiche)
 	_,stablest = findmax(niche.stability)
@@ -214,35 +214,20 @@ end
 
 #---------------------------------------------------------------------
 @doc """
-    explore( affordance)
-
-Implement a single Affordance as an Exploration
-"""
-function explore( niche::GeneticNiche, aff::Affordance)
-	# Convert Affordance to Exploration:
-	exploration = copy(aff.data)
-	curiosity = (exploration .≥ niche.explarity)
-	exploration[curiosity] = rand(0:niche.explarity-1,sum(curiosity))
-
-	exploration
-end
-
-#---------------------------------------------------------------------
-@doc """
     ```explore( niche)```
 
 Implement the GeneticNiche's Affordances as an Exploration
 """
 function Rheolecsis.explore( niche::GeneticNiche)
-	nafford = size(niche)[1]
-	exploration = [similar(niche.affordances[1].data) for _ ∈ 1:nafford]
-	
-	for i ∈ 1:nafford
-		# Convert Affordances to Explorations:
-		exploration[i][:] = niche.affordances[i].data[:]
-		curiosity = (exploration[i] .≥ niche.explarity)
-		exploration[i][curiosity] = rand(0:niche.explarity-1,sum(curiosity))
-	end
+	deepcopy(map(x->x.data,niche.affordances))
+end
 
-	exploration
+#---------------------------------------------------------------------
+@doc """
+    ```explore( niche, affordance)```
+
+Implement this specific Affordance as an Exploration
+"""
+function Rheolecsis.explore( niche::GeneticNiche, aff::Affordance)
+	aff.data
 end
