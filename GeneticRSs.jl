@@ -26,16 +26,16 @@ export nohint, mepi, niche, enform, stablest
 Genetic optimising RS.
 """
 struct GeneticRS <: Rheolecsim
-	enform::BinaryEnform
-	niche::GeneticNiche
+	enform::BinaryEnform				# The informing environment
+	niche::GeneticNiche					# The self-asserting enclave
 
 	"Construct a new GeneticRS instance"
 	function GeneticRS( obj::Objective, accuracy::Int, nafford::Int;
 		explarity::Int=2, curiosity::Int=0
 	)
-		enform = BinaryEnform( obj, accuracy, explarity)
+		enform = BinaryEnform( obj, accuracy, explarity, curiosity)
 		niche = GeneticNiche( nafford, accuracy*obj.dimension,
-			explarity=explarity, curiosity=curiosity
+								explarity, curiosity
 		)
 		embed!( niche, enform)
 		new(enform,niche)
@@ -91,49 +91,71 @@ end		# ... of module GeneticRSs
 if geneticrssunittest
 	using .GeneticRSs
 
-	function unittest( complexity::Int=13, ngens::Int=100)
-		# Initialise counters and force compilation:
-		nsuccess0 = 0
-		nsuccess1 = 0
-		timing0 = 0.0
-		timing1 = 0.0
-		running0 = true
-		running1 = true
-		enact!( GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=1), 5)
+	function unittest( apparatus=3, complexity=20, duration=100.0)
+		nsuccess = fill(0,2)					# Count successful searches
+		ntrials = fill(0,2)						# Count number of trials
+		comptime = fill(0.0,2)					# Track computation time
+		running = fill(true,2)					# Are trials still running?
+		curiosity = 100							# General curiosity level
+		ngenerations = 300						# Number of enact gens
+
+		# Set up apparatus and force compilation before benchmarking:
+		# De Jong (1975):
+		rsbench = GeneticRS( Objective(6), complexity, 20, curiosity=1)
+		# Hinton & Nowlan (1987):
+		rsbench = GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=1)
+		# Watson (2007):
+		rsbench = GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=1)
+		enact!( rsbench, 2)
 
 		println("\n============ Unit test GeneticRSs: ===============")
-		while running0 || running1
-			# Hinton & Nowlan 1987, without and with curiosity:
-#			rs0 = GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20)
-#			rs1 = GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=1)
-			# De Jong (1989):
-#			rs0 = GeneticRS( Objective(6), 15, 20)
-#			rs1 = GeneticRS( Objective(6), 15, 20, curiosity=1)
-			# Watson (2007) - complexity 128:
-			rs0 = GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20)
-			rs1 = GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=1)
-
-			if running0 && timing0 < 1
-				timing0 += @elapsed enact!(rs0,100*ngens)
-			else
-				running0 = false
-			end
-			if running1 && timing1 < 1
-				timing1 += @elapsed enact!(rs1,ngens)
-			else
-				running1 = false
+		while any(running)
+			# Choose new benchmark apparatus:
+			if apparatus == 1					# De Jong (1975)
+				rsbench = [GeneticRS( Objective(6), complexity, 20),
+					GeneticRS( Objective(6), complexity, 20, curiosity=curiosity)
+				]
+				threshold = -18.0
+			elseif apparatus == 2				# Hinton & Nowlan (1987)
+				rsbench = [GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20),
+					GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
+				]
+				threshold = 0.1
+			else								# Watson (2007)
+				rsbench = [GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20),
+				GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
+			]
+				threshold = complexity + 1
 			end
 
-			if running0 && stablest(rs0.niche)[2] <= complexity+1
-				nsuccess0 += 1
-			end
-			if running1 && stablest(rs1.niche)[2] <= complexity+1
-				nsuccess1 += 1
+			# Perform current trials:
+			for trial ∈ 1:2
+				# Trial 1: curiosity 0; trial 2: curiosity = 100
+				if running[trial]
+					if comptime[trial] < duration
+						ntrials[trial] += 1
+						comptime[trial] += @elapsed enact!( rsbench[trial],
+										ngenerations * (trial==1 ? curiosity : 1))
+						if stablest(rsbench[trial].niche)[2] <= threshold
+							# Record trial result:
+							nsuccess[trial] += 1
+						end
+					else
+						running[trial] = false
+					end
+				end
 			end
 		end
 
-		println( "Results over 500 seconds using $(complexity) bits ...")
-		println( "Success without curiosity:", lpad(nsuccess0,4), "%; time = ", timing0)
-		println( "Success with curiosity:   ", lpad(nsuccess1,4), "%; time = ", timing1)
+		println( "Results over $(duration) seconds using $(complexity) bits ...")
+		println()
+
+		for trial ∈ 1:2
+			# Trial 1: curiosity 0; trial 2: curiosity = 100
+			println( "Success $(trial==1 ? "without" : "with") curiosity:",
+				lpad(nsuccess[trial],2), "/", ntrials[trial], "; time = ", comptime[trial])
+			println( "Final state: ", rsbench[trial])
+		end
 	end
+
 end

@@ -42,9 +42,11 @@ struct BinaryEnform <: Enform
 	objective::Objective	# Objective function for evaluating profiles
 	decoder::Decoder		# Binary decoder
 	arity::Int				# Arity of constructions and decoder
+	curiosity::Int			# Max number of niche explorations
 
-	function BinaryEnform( obj::Objective, accuracy::Int=15, arity::Int=2)
-		new( obj, Decoder(obj.domain,accuracy,arity), arity)
+	function BinaryEnform( obj::Objective, accuracy::Int=15,
+									arity::Int=2, curiosity::Int=0)
+		new( obj, Decoder(obj.domain,accuracy,arity), arity, curiosity)
 	end
 end
 
@@ -69,9 +71,9 @@ function Rheolecsis.construct!( enform::BinaryEnform, exploration::Construction{
 		nindet = sum.(indeterminacy)
 		for i in 1:len
 			# Convert Explorations to Constructions:
-			expl = rand(0:enform.arity-1,(nindet[i],100))
-			for j in 1:100
-				# Perform 100 explorations:
+			expl = rand(0:enform.arity-1,(nindet[i],enform.curiosity))
+			for j in 1:enform.curiosity
+				# Perform an individual exploration:
 				exploration[i][indeterminacy[i]] = expl[:,j]
 				objeval = enform.objective( interpret( enform, exploration[i]))
 				if objeval < objectives[i]

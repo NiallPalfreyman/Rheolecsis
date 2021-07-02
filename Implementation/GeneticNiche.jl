@@ -51,16 +51,19 @@ mutable struct GeneticNiche <: Niche
 	response::Response					# Current response values
 	stability::Vector{Float64}			# Corresponding stability values
 
-	function GeneticNiche( nafford::Int, ndata::Int;
+	function GeneticNiche( nafford::Int, ndata::Int,
 		explarity::Int=2, curiosity::Int=0
 	)
 		if rem(nafford,2) != 0
 			# nafford must be even for our recombination algorithm:
 			nafford += 1
 		end
+		# Using exploratory affordance data?
+		arity = (curiosity > 0) ? explarity+1 : explarity
+			
 		new(
-			[Affordance( ndata, explarity+curiosity) for _ ∈ 1:nafford],
-			explarity,					# explarity
+			[Affordance( ndata, arity) for _ ∈ 1:nafford],
+			arity,						# explarity
 			2/(nafford*ndata),			# mu (2 per generation)
 			1,							# temperature
 			ones(nafford)/nafford,		# response
