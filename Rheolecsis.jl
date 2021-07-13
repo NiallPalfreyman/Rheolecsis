@@ -48,7 +48,7 @@ end
 Enact the RS's niche through nSteps, using mutation and recombination
 according to interaction with the enforming context.
 """
-function enact!( rs::Rheolecsim, nSteps::Int)
+function enact!( rs::Rheolecsim, nSteps::Int=1)
 	# Now run the RS:
 	for _ ∈ 1:nSteps
 		# Recombine affordances based on niche's current stability:

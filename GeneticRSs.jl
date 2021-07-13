@@ -18,7 +18,7 @@ include("Implementation/BinaryEnform.jl")
 include("Implementation/GeneticNiche.jl")
 
 export GeneticRS, Objective, enact!, temperature!, mu!, determinate!
-export nohint, mepi, niche, enform, stablest
+export nohint, mepi, niche, enform, status
 
 #====================================================================#
 @doc """
@@ -74,15 +74,26 @@ end
 
 #---------------------------------------------------------------------
 @doc """
+    ```status( rs)````
+
+	Return current status (data, interpretation, evaluation) of stablest
+	Affordance in rs.niche.
+"""
+function status( rs::GeneticRS)
+	data = explore( rs.niche, stablest( rs.niche)[1])
+	interpretation = interpret( rs.enform, data)
+	(data, interpretation, evaluate( rs.enform, interpretation))
+end
+
+#---------------------------------------------------------------------
+@doc """
     ```show( rs)````
 
-Display current status of best Affordance in GeneticNiche.
+Display current status of stablest Affordance in rs.niche.
 """
 function Base.show( io::IO, rs::GeneticRS)
-	aff, resp = stablest( rs.niche)
-	interpretation = interpret( rs.enform, explore( rs.niche, aff))
-
-	println( io, "\"", interpretation, "\" : ", resp)
+	data, interpretation = status( rs)
+	println( io, "\"", data, "\" : ", interpretation)
 end
 
 end		# ... of module GeneticRSs
@@ -91,70 +102,63 @@ end		# ... of module GeneticRSs
 if geneticrssunittest
 	using .GeneticRSs
 
-	function unittest( apparatus=3, complexity=20, duration=100.0)
-		nsuccess = fill(0,2)					# Count successful searches
-		ntrials = fill(0,2)						# Count number of trials
-		comptime = fill(0.0,2)					# Track computation time
-		running = fill(true,2)					# Are trials still running?
-		curiosity = 100							# General curiosity level
-		ngenerations = 300						# Number of enact gens
+	function unittest( apparatus=1, complexity=20, duration=100.0)
+		nsuccess = [0,0]				# Count successful searches
+		ntrials = [0,0]					# Number of trials
+		ngenerations = [0,0]			# Number of generations performed
+		maxgens = 30					# Max number of generations/trial
+		comptime = [0.0,0.0]			# Track computation time
+		running = [true,true]			# Are trials still running?
+		curiosity = 100					# General curiosity level
 
 		# Set up apparatus and force compilation before benchmarking:
-		# De Jong (1975):
-		rsbench = GeneticRS( Objective(6), complexity, 20, curiosity=1)
-		# Hinton & Nowlan (1987):
-		rsbench = GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=1)
-		# Watson (2007):
-		rsbench = GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=1)
-		enact!( rsbench, 2)
+		testbed = GeneticRS( Objective(6), complexity, 20, curiosity=1)
+		enact!( testbed)
 
 		println("\n============ Unit test GeneticRSs: ===============")
 		while any(running)
 			# Choose new benchmark apparatus:
 			if apparatus == 1					# De Jong (1975)
-				rsbench = [GeneticRS( Objective(6), complexity, 20),
+				testbed = [GeneticRS( Objective(6), complexity, 20),
 					GeneticRS( Objective(6), complexity, 20, curiosity=curiosity)
 				]
-				threshold = -18.0
+				threshold = -15.0
 			elseif apparatus == 2				# Hinton & Nowlan (1987)
-				rsbench = [GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20),
+				testbed = [GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20),
 					GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
 				]
 				threshold = 0.1
 			else								# Watson (2007)
-				rsbench = [GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20),
-				GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
-			]
+				testbed = [GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20),
+					GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
+				]
 				threshold = complexity + 1
 			end
 
-			# Perform current trials:
-			for trial ∈ 1:2
-				# Trial 1: curiosity 0; trial 2: curiosity = 100
-				if running[trial]
-					if comptime[trial] < duration
-						ntrials[trial] += 1
-						comptime[trial] += @elapsed enact!( rsbench[trial],
-										ngenerations * (trial==1 ? curiosity : 1))
-						if stablest(rsbench[trial].niche)[2] <= threshold
-							# Record trial result:
-							nsuccess[trial] += 1
-						end
-					else
-						running[trial] = false
+			# Perform trials, reporting number of generations taken to achieve
+			# threshold criterion genetically:
+			for rs ∈ 1:2
+				# Conduct RS trial with and without curiosity:
+				ngenerations[rs] = 0
+				while ngenerations[rs] < maxgens && status(testbed[rs])[3] > threshold
+					# Run testbed simulation to threshold:
+					comptime[rs] += @elapsed enact!( testbed[rs], (rs==1 ? curiosity : 1))
+					ngenerations[rs] += 1
+					if comptime[rs] > 10
+						running[rs] = false
 					end
 				end
 			end
 		end
 
-		println( "Results over $(duration) seconds using $(complexity) bits ...")
+		println( "Results over $(maximum(comptime,dims=1)) seconds using $(complexity) bits ...")
 		println()
 
-		for trial ∈ 1:2
+		for rs ∈ 1:2
 			# Trial 1: curiosity 0; trial 2: curiosity = 100
-			println( "Success $(trial==1 ? "without" : "with") curiosity:",
-				lpad(nsuccess[trial],2), "/", ntrials[trial], "; time = ", comptime[trial])
-			println( "Final state: ", rsbench[trial])
+			println( "Success $(rs==1 ? "without" : "with") curiosity:",
+				lpad(nsuccess[rs],2), "/", ngenerations[rs], "; time = ", comptime[rs])
+			println( "Final state: ", testbed[rs])
 		end
 	end
 

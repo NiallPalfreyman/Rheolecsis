@@ -117,3 +117,13 @@ Interpret the exploration as an individual construction.
 function interpret( benform::BinaryEnform, exploration::Vector{Int})
 	benform.decoder( exploration)
 end
+
+#---------------------------------------------------------------------
+@doc """
+	```evaluate( benform, exploration)```
+
+Evaluate the exploration as an individual construction.
+"""
+function evaluate( benform::BinaryEnform, interpretation::Vector{Float64})
+	benform.objective(interpretation)
+end
