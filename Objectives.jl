@@ -33,7 +33,6 @@ struct Objective
 
 		# Check objective function's domain and dimension:
 		if dom[1] isa Number
-			println(fun, dim, dom)
 			# Client has forgotten [[double brackets]]:
 			dom = [[dom[1],dom[2]]]
 		end

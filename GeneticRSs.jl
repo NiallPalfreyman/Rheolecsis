@@ -102,35 +102,36 @@ end		# ... of module GeneticRSs
 if geneticrssunittest
 	using .GeneticRSs
 
-	function unittest( apparatus=1, complexity=20, duration=100.0)
+	function unittest( apparatus=2, complexity=10, duration=100.0)
 		nsuccess = [0,0]				# Count successful searches
 		ntrials = [0,0]					# Number of trials
-		ngenerations = [0,0]			# Number of generations performed
-		maxgens = 30					# Max number of generations/trial
+		ngenerations = [0,0]			# Number of generations so far
+		maxgens = 10					# Max number of generations
 		comptime = [0.0,0.0]			# Track computation time
 		running = [true,true]			# Are trials still running?
-		curiosity = 100					# General curiosity level
+		curiosity = 5					# General curiosity level
+		nafford = 20					# Number of affordances at work
 
 		# Set up apparatus and force compilation before benchmarking:
-		testbed = GeneticRS( Objective(6), complexity, 20, curiosity=1)
+		testbed = GeneticRS( Objective(6), complexity, nafford, curiosity=1)
 		enact!( testbed)
 
 		println("\n============ Unit test GeneticRSs: ===============")
 		while any(running)
 			# Choose new benchmark apparatus:
 			if apparatus == 1					# De Jong (1975)
-				testbed = [GeneticRS( Objective(6), complexity, 20),
-					GeneticRS( Objective(6), complexity, 20, curiosity=curiosity)
+				testbed = [GeneticRS( Objective(6), complexity, nafford),
+					GeneticRS( Objective(6), complexity, nafford, curiosity=curiosity)
 				]
 				threshold = -15.0
 			elseif apparatus == 2				# Hinton & Nowlan (1987)
-				testbed = [GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20),
-					GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
+				testbed = [GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, nafford),
+					GeneticRS( Objective(nohint, complexity, [[0,1]]), 1, nafford, curiosity=curiosity)
 				]
 				threshold = 0.1
 			else								# Watson (2007)
-				testbed = [GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20),
-					GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, 20, curiosity=curiosity)
+				testbed = [GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, nafford),
+					GeneticRS( Objective(mepi, complexity, [[0,1]]), 1, nafford, curiosity=curiosity)
 				]
 				threshold = complexity + 1
 			end
@@ -148,6 +149,16 @@ if geneticrssunittest
 						running[rs] = false
 					end
 				end
+			end
+
+			if maximum(ngenerations) % 10 == 0
+				# Output interim results:
+				# We're only doing 10 generations. Why?
+				# Curious always does less generations than Machine (exploration)
+				# How can I trap it at longer intervals?
+				#println( "Curious: ", status( testbed[1]))
+				#println( "Machine: ", status( testbed[2]))
+				println( ngenerations)
 			end
 		end
 
